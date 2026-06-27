@@ -7,6 +7,4 @@ export class CreateNoteDto {
     @IsString()
     @MinLength(1)
     content!: string;
-    @IsString()
-    userId!: string;
 }
