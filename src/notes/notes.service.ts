@@ -21,9 +21,11 @@ export class NotesService {
         }));
     }
 
-    async getById(id: string) : Promise<NoteReadonlyDto> {
-        const note = await this.prisma.note.findUnique({
-            where: { id }
+    async getById(id: string, userId: string) : Promise<NoteReadonlyDto> {
+        const note = await this.prisma.note.findFirst({
+            where: { id ,
+                userId: userId
+            }
         });
         if (!note) {
             throw new NotFoundException(`Note with ID ${id} not found`);
@@ -38,21 +40,13 @@ export class NotesService {
         };
     }
 
-    async createNote(dto: CreateNoteDto) : Promise<NoteReadonlyDto> {
-
-        const user = await this.prisma.user.findUnique({
-            where: { id: dto.userId }
-        });
-
-        if (!user) {
-            throw new NotFoundException(`User with ID ${dto.userId} not found`);
-        }
+    async createNote(dto: CreateNoteDto, userId: string) : Promise<NoteReadonlyDto> {
 
         const newNote = await this.prisma.note.create({
             data: {
                 title: dto.title,
                 content: dto.content,
-                userId: dto.userId,
+                userId: userId,
                 createdAt: new Date(),
                 updatedAt: new Date()
             }
@@ -66,5 +60,17 @@ export class NotesService {
             userId: newNote.userId
         };
 
+    }
+
+    async deleteNote(id: string, userId: string) : Promise<void> {
+        const note = await this.prisma.note.findFirst({
+            where: { id, userId }
+        });
+        if (!note) {
+            throw new NotFoundException(`Note with ID ${id} not found`);
+        }
+        await this.prisma.note.delete({
+            where: { id }
+        });
     }
 }
