@@ -39,6 +39,15 @@ export class NotesService {
     }
 
     async createNote(dto: CreateNoteDto) : Promise<NoteReadonlyDto> {
+
+        const user = await this.prisma.user.findUnique({
+            where: { id: dto.userId }
+        });
+
+        if (!user) {
+            throw new NotFoundException(`User with ID ${dto.userId} not found`);
+        }
+
         const newNote = await this.prisma.note.create({
             data: {
                 title: dto.title,
