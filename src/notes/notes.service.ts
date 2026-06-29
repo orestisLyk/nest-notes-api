@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { NoteReadonlyDto } from './dto/note-readonly.dto';
 import { CreateNoteDto } from './dto/create-note.dto';
+import { UpdateNoteDto } from './dto/update-note.dto';
 
 @Injectable()
 export class NotesService {
@@ -72,5 +73,30 @@ export class NotesService {
         await this.prisma.note.delete({
             where: { id }
         });
+    }
+
+    async updateNote(id: string, dto: UpdateNoteDto, userId: string) : Promise<NoteReadonlyDto> {
+        const note = await this.prisma.note.findFirst({
+            where: { id, userId }
+        });
+        if (!note) {
+            throw new NotFoundException(`Note with ID ${id} not found`);
+        }
+        const updatedNote = await this.prisma.note.update({
+            where: { id },
+            data: {
+                title: dto.title ?? note.title,
+                content: dto.content ?? note.content,
+                updatedAt: new Date()
+            }
+        });
+        return {
+            id: updatedNote.id,
+            title: updatedNote.title,
+            content: updatedNote.content,
+            createdAt: updatedNote.createdAt,
+            updatedAt: updatedNote.updatedAt,
+            userId: updatedNote.userId
+        };
     }
 }
